@@ -1,0 +1,44 @@
+Description:
+This project applies audio style transfer, where you convert the timbre or "style" of one instrument (e.g., guitar) into another (e.g., violin), while keeping the underlying melody or rhythm intact. It's like neural style transfer for sound.
+
+Goal
+Convert a musical performance from one instrument to sound like it's played on another, using deep learning models for timbral translation (e.g., CycleGANs or diffusion models for audio).
+
+Code (Concept Prototype using MelGAN + timbre encoder)
+import torch
+import torchaudio
+import torchaudio.transforms as T
+ 
+# Load a sample guitar audio
+waveform, sr = torchaudio.load("data/guitar_phrase.wav")
+waveform = waveform[:, :sr * 3]  # take 3 seconds
+ 
+# Preprocessing: Convert to mel-spectrogram
+mel_transform = T.MelSpectrogram(sample_rate=sr, n_mels=80)
+mel = mel_transform(waveform).squeeze(0)
+ 
+# Load a pretrained MelGAN vocoder for waveform reconstruction
+melgan = torch.hub.load("descriptinc/melgan-neurips", "load_melgan")
+melgan.eval()
+ 
+# Style transfer placeholder: Guitar ➝ Violin
+# In a real pipeline, use CycleGAN trained on paired guitar-violin Mel spectrograms
+def fake_style_transfer(mel):
+    return mel.roll(shifts=5, dims=1) * 0.95  # Dummy shift to simulate spectral coloring
+ 
+# Apply fake "style conversion"
+mel_violin = fake_style_transfer(mel).unsqueeze(0)
+ 
+# Reconstruct waveform from Mel spectrogram (MelGAN expects log-mel)
+waveform_out = melgan.inverse(mel_violin)
+ 
+# Save or play the output
+torchaudio.save("outputs/violinified_guitar.wav", waveform_out, sr)
+print("🎻 Saved output as violin-styled guitar audio.")
+For real style transfer, use:
+
+CycleGAN trained on paired guitar/violin spectrograms
+
+Diffusion models or AutoVC-like frameworks for fine-grained control
+
+Datasets like NSynth (for individual instrument tone
